@@ -1,0 +1,13 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb+srv://${MONGO_USER}:${MONGO_PASSWORD}@planning-trips.piv1z.mongodb.net
+      authentication-database: admin
+      database: planning-trips
+      auto-index-creation: true
+  jackson:
+    serialization:
+      write_dates_as_timestamps: false
+server:
+  port: 8080
+
