@@ -2,28 +2,29 @@ package pl.adrian.planningtripsbackend.config.mongo
 
 import com.mongodb.ConnectionString
 import com.mongodb.MongoClientSettings
-import com.mongodb.reactivestreams.client.MongoClient
-import com.mongodb.reactivestreams.client.MongoClients
+import com.mongodb.client.MongoClient
+import com.mongodb.client.MongoClients
 import org.springframework.boot.autoconfigure.mongo.MongoProperties
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.data.mongodb.config.AbstractReactiveMongoConfiguration
 import org.springframework.data.mongodb.config.EnableMongoAuditing
-import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRepositories
+import org.springframework.data.mongodb.core.MongoTemplate
 
 @Configuration
 @EnableMongoAuditing
-@EnableReactiveMongoRepositories
-class MongoConfig(private val mongoProperties: MongoProperties) : AbstractReactiveMongoConfiguration() {
+class MongoConfig(private val mongoProperties: MongoProperties) {
 
-    override fun getDatabaseName(): String {
-        return mongoProperties.database
-    }
-
-    override fun reactiveMongoClient(): MongoClient  {
+    @Bean
+    fun mongoClient(): MongoClient? {
         val connectionString = ConnectionString(mongoProperties.uri)
         val mongoClientSettings = MongoClientSettings.builder()
             .applyConnectionString(connectionString)
             .build()
         return MongoClients.create(mongoClientSettings)
+    }
+
+    @Bean
+    fun mongoTemplate(): MongoTemplate? {
+        return MongoTemplate(mongoClient()!!, mongoProperties.database)
     }
 }

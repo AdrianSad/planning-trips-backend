@@ -1,45 +1,42 @@
 package pl.adrian.planningtripsbackend.config.security
 
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
-import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
-import org.springframework.security.config.http.SessionCreationPolicy
-import org.springframework.security.config.web.server.ServerHttpSecurity
-import org.springframework.security.web.server.SecurityWebFilterChain
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
+import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.builders.WebSecurity
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.web.cors.CorsConfiguration
-import org.springframework.web.reactive.config.CorsRegistry
-import org.springframework.web.reactive.config.WebFluxConfigurer
 
-@EnableWebFluxSecurity
 @Configuration
-class SecurityConfig: WebFluxConfigurer {
+@EnableWebSecurity
+@EnableGlobalMethodSecurity(jsr250Enabled = true)
+class SecurityConfig: WebSecurityConfigurerAdapter() {
 
-    override fun addCorsMappings(registry: CorsRegistry) {
-        registry.addMapping("/**")
-            .allowedOrigins("http://localhost:3000")
-            .allowedMethods("PUT")
-            .allowedMethods("DELETE")
-            .allowedMethods("PATCH")
-            .maxAge(3600);    }
+//    override fun init(web: WebSecurity?) {
+//        web!!.ignoring()
+//            .antMatchers(HttpMethod.OPTIONS, "/**")
+//            .antMatchers("/content/**")
+//            .antMatchers("/swagger-ui/index.html")
+//            .antMatchers("/test/**")    }
 
-    @Bean
-    fun securitygWebFilterChain(
-        http: ServerHttpSecurity
-    ): SecurityWebFilterChain? {
+
+    @Throws(Exception::class)
+    override fun configure(http: HttpSecurity) {
         http.headers().frameOptions().disable()
-        return http
+        http
             .csrf().disable()
             .cors().configurationSource{getCorsConfiguration()}
             .and()
-            .authorizeExchange()
-            .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-            .pathMatchers(HttpMethod.POST, "/api/v1/user/register").permitAll()
-            .pathMatchers(HttpMethod.POST, "/api/v1/user/login").permitAll()
-            .anyExchange().authenticated()
+            .authorizeRequests()
+            .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+            .antMatchers(HttpMethod.POST, "/api/v1/user/register").permitAll()
+            .antMatchers(HttpMethod.POST, "/api/v1/user/login").permitAll()
+            .anyRequest().authenticated()
             .and()
             .oauth2ResourceServer()
-            .jwt().and().and().build()
+            .jwt()
     }
 
     private fun getCorsConfiguration(): CorsConfiguration {

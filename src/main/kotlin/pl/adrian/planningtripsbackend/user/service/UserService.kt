@@ -30,7 +30,7 @@ class UserService(private val userMapper: UserMapper,
             throw RuntimeException("USER_EXISTS")
         }
 
-        val credentialRepresentation: CredentialRepresentation = createPasswordCredentials(user.password!!)
+        val credentialRepresentation: CredentialRepresentation = createPasswordCredentials(createUserDto.password!!)
         val kcUser = UserRepresentation()
         kcUser.credentials = Collections.singletonList(credentialRepresentation)
         kcUser.username = user.username

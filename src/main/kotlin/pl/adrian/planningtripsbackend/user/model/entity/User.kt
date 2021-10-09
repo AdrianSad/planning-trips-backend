@@ -1,7 +1,7 @@
 package pl.adrian.planningtripsbackend.user.model.entity
 
-class User {
-    var username: String? = ""
-    var password: String? = ""
+data class User(
+    var id: String? = "",
+    var username: String? = "",
     var email: String? = ""
-}
+)
