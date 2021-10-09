@@ -1,25 +1,48 @@
 package pl.adrian.planningtripsbackend.config.security
 
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
-import org.springframework.security.config.web.server.ServerHttpSecurity
-import org.springframework.security.web.server.SecurityWebFilterChain
+import org.springframework.http.HttpMethod
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
+import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.builders.WebSecurity
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
+import org.springframework.web.cors.CorsConfiguration
 
-@EnableWebFluxSecurity
 @Configuration
-class SecurityConfig {
+@EnableWebSecurity
+@EnableGlobalMethodSecurity(jsr250Enabled = true)
+class SecurityConfig: WebSecurityConfigurerAdapter() {
 
-    @Bean
-    fun securitygWebFilterChain(
-        http: ServerHttpSecurity
-    ): SecurityWebFilterChain? {
-        return http
+//    override fun init(web: WebSecurity?) {
+//        web!!.ignoring()
+//            .antMatchers(HttpMethod.OPTIONS, "/**")
+//            .antMatchers("/content/**")
+//            .antMatchers("/swagger-ui/index.html")
+//            .antMatchers("/test/**")    }
+
+
+    @Throws(Exception::class)
+    override fun configure(http: HttpSecurity) {
+        http.headers().frameOptions().disable()
+        http
             .csrf().disable()
-            .authorizeExchange()
-            .anyExchange().authenticated()
+            .cors().configurationSource{getCorsConfiguration()}
+            .and()
+            .authorizeRequests()
+            .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+            .antMatchers(HttpMethod.POST, "/api/v1/user/register").permitAll()
+            .antMatchers(HttpMethod.POST, "/api/v1/user/login").permitAll()
+            .anyRequest().authenticated()
             .and()
             .oauth2ResourceServer()
-            .jwt().and().and().build()
+            .jwt()
+    }
+
+    private fun getCorsConfiguration(): CorsConfiguration {
+        val corsConfiguration = CorsConfiguration().applyPermitDefaultValues()
+        corsConfiguration.addAllowedMethod(HttpMethod.PATCH)
+        corsConfiguration.addAllowedMethod(HttpMethod.DELETE)
+        return corsConfiguration
     }
 }

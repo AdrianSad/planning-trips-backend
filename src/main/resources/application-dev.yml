@@ -1,0 +1,7 @@
+logging:
+  level:
+    org:
+      springframework:
+        web: DEBUG
+  error:
+    include-stacktrace: always
