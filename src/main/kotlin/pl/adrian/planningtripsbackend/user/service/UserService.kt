@@ -9,11 +9,11 @@ import org.springframework.stereotype.Service
 import org.springframework.util.CollectionUtils
 import pl.adrian.planningtripsbackend.config.keycloak.KeycloakConfig
 import pl.adrian.planningtripsbackend.config.keycloak.KeycloakProperties
+import pl.adrian.planningtripsbackend.exception.model.BadRequestException
 import pl.adrian.planningtripsbackend.user.mapper.UserMapper
 import pl.adrian.planningtripsbackend.user.model.dto.AuthenticateUserDto
 import pl.adrian.planningtripsbackend.user.model.dto.CreateUserDto
 import pl.adrian.planningtripsbackend.user.model.entity.User
-import java.lang.RuntimeException
 import java.util.*
 
 @Service
@@ -27,7 +27,7 @@ class UserService(private val userMapper: UserMapper,
 
         val search = usersResource.search(null, null, null, user.email, null, null)
         if(!CollectionUtils.isEmpty(search)) {
-            throw RuntimeException("USER_EXISTS")
+            throw BadRequestException("USER_ALREADY_EXISTS", "User with this email already exists")
         }
 
         val credentialRepresentation: CredentialRepresentation = createPasswordCredentials(createUserDto.password!!)
@@ -55,7 +55,7 @@ class UserService(private val userMapper: UserMapper,
             authenticateUserDto.password!!,
             keycloakProperties
         ) }
-            .onFailure { throw RuntimeException(it.message) }
+            .onFailure { throw BadRequestException("INVALID_CREDENTIALS", it.message!!) }
             .get().tokenManager().accessToken
         return atr
     }

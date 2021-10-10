@@ -4,7 +4,6 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
-import org.springframework.security.config.annotation.web.builders.WebSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.web.cors.CorsConfiguration
@@ -13,14 +12,6 @@ import org.springframework.web.cors.CorsConfiguration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(jsr250Enabled = true)
 class SecurityConfig: WebSecurityConfigurerAdapter() {
-
-//    override fun init(web: WebSecurity?) {
-//        web!!.ignoring()
-//            .antMatchers(HttpMethod.OPTIONS, "/**")
-//            .antMatchers("/content/**")
-//            .antMatchers("/swagger-ui/index.html")
-//            .antMatchers("/test/**")    }
-
 
     @Throws(Exception::class)
     override fun configure(http: HttpSecurity) {
