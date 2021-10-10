@@ -60,6 +60,27 @@ class UserControllerTest {
 
     @Test
     @Throws(Exception::class)
+    fun createUserWhichAlreadyExists(){
+
+        val createUserDto = CreateUserDto(
+            DEFAULT_USERNAME,
+            DEFAULT_PASSWORD,
+            DEFAULT_EMAIL)
+        val writeValueAsBytes = ObjectMapper().writeValueAsBytes(createUserDto)
+
+        restUserMockMvc.perform(MockMvcRequestBuilders.post("/api/v1/user/register")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(writeValueAsBytes))
+            .andExpect(MockMvcResultMatchers.status().is4xxClientError)
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.code").value("USER_ALREADY_EXISTS"))
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.status").value("BAD_REQUEST"))
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.message").value("User with this email already exists"))
+
+    }
+
+    @Test
+    @Throws(Exception::class)
     fun getUser(){
 
         val authenticateUserDto = AuthenticateUserDto(DEFAULT_EMAIL, DEFAULT_PASSWORD)
