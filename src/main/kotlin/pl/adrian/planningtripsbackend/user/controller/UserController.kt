@@ -14,8 +14,10 @@ import javax.validation.Valid
 class UserController(private val userService: UserService) {
 
     @PostMapping("/register")
-    fun createUser(@RequestBody @Valid createUserDto: CreateUserDto) = userService.addUser(createUserDto)
+    fun createUser(@RequestBody @Valid createUserDto: CreateUserDto) =
+        userService.addUser(createUserDto)
 
     @PostMapping("/login")
-    fun getJWT(@RequestBody @Valid authenticateUserDto: AuthenticateUserDto) = userService.getUserJWT(authenticateUserDto)
+    fun getJWT(@RequestBody @Valid authenticateUserDto: AuthenticateUserDto) =
+        userService.getUserJWT(authenticateUserDto)
 }

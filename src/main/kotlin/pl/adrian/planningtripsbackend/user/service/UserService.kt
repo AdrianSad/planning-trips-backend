@@ -59,5 +59,4 @@ class UserService(private val userMapper: UserMapper,
             .get().tokenManager().accessToken
         return atr
     }
-
 }
