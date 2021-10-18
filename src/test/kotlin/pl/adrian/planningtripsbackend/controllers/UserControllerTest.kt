@@ -1,4 +1,4 @@
-package pl.adrian.planningtripsbackend.user.controller
+package pl.adrian.planningtripsbackend.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.commons.lang3.RandomStringUtils
@@ -26,7 +26,6 @@ import kotlin.jvm.Throws
 @AutoConfigureMockMvc
 @WithMockUser(authorities = ["ROLE_USER"])
 @SpringBootTest(classes = [PlanningTripsBackendApplication::class, TestSecurityConfiguration::class])
-
 class UserControllerTest {
 
     @Autowired
@@ -49,7 +48,8 @@ class UserControllerTest {
         val createUserDto = CreateUserDto(
             DEFAULT_USERNAME + RandomStringUtils.randomAlphabetic(5),
             DEFAULT_PASSWORD,
-            RandomStringUtils.randomAlphabetic(5) + DEFAULT_EMAIL)
+            RandomStringUtils.randomAlphabetic(5) + DEFAULT_EMAIL
+        )
         val writeValueAsBytes = ObjectMapper().writeValueAsBytes(createUserDto)
 
         restUserMockMvc.perform(MockMvcRequestBuilders.post("/api/v1/user/register")
@@ -65,7 +65,8 @@ class UserControllerTest {
         val createUserDto = CreateUserDto(
             DEFAULT_USERNAME,
             DEFAULT_PASSWORD,
-            DEFAULT_EMAIL)
+            DEFAULT_EMAIL
+        )
         val writeValueAsBytes = ObjectMapper().writeValueAsBytes(createUserDto)
 
         restUserMockMvc.perform(MockMvcRequestBuilders.post("/api/v1/user/register")
@@ -76,7 +77,6 @@ class UserControllerTest {
             .andExpect(MockMvcResultMatchers.jsonPath("\$.code").value("USER_ALREADY_EXISTS"))
             .andExpect(MockMvcResultMatchers.jsonPath("\$.status").value("BAD_REQUEST"))
             .andExpect(MockMvcResultMatchers.jsonPath("\$.message").value("User with this email already exists"))
-
     }
 
     @Test

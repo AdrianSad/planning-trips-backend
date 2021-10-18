@@ -1,0 +1,22 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb+srv://${MONGO_USER}:${MONGO_PASSWORD}@planning-trips.piv1z.mongodb.net
+      authentication-database: admin
+      database: planning-trips
+      auto-index-creation: true
+  jackson:
+    serialization:
+      write_dates_as_timestamps: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:9080/auth/realms/PlanningTripsRealm
+keycloak:
+  serverUrl: http://localhost:9080/auth
+  realm: PlanningTripsRealm
+  clientId: login-app
+  clientSecret: b18fceeb-2ef8-4b87-918f-29a241d396ea
+  username: admin
+  password: admin
