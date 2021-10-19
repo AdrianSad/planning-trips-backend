@@ -12,7 +12,7 @@ import org.springframework.http.MediaType
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import pl.adrian.planningtripsbackend.PlanningTripsBackendApplication
 import pl.adrian.planningtripsbackend.config.TestSecurityConfiguration
 import pl.adrian.planningtripsbackend.trip.mapper.TripMapper
@@ -26,7 +26,6 @@ import java.lang.Exception
 import java.time.Instant
 import java.util.*
 import kotlin.jvm.Throws
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import pl.adrian.planningtripsbackend.trip.model.dto.CreateTripDto
@@ -55,6 +54,8 @@ class TripControllerTest {
 
     @BeforeEach
     fun setUp() {
+        TestSecurityContextHolder.getContext().authentication = TokenUtils.getJwtAuthenticationToken()
+
         trip = createTrip()
         createTripDto = createTripDto()
     }
@@ -62,8 +63,6 @@ class TripControllerTest {
     @Test
     @Throws(Exception::class)
     fun createTripTest() {
-
-        TestSecurityContextHolder.getContext().authentication = TokenUtils.getJwtAuthenticationToken()
 
         val databaseSizeBeforeCreate = tripRepository.findAll().size
 
@@ -85,13 +84,12 @@ class TripControllerTest {
         assertThat(testTrip.route).isEqualTo(DEFAULT_ROUTE)
         assertThat(testTrip.markers).hasSize(DEFAULT_MARKERS.size)
         assertThat(testTrip.travelMode).isEqualTo(DEFAULT_TRAVEL_MODE)
+        assertThat(testTrip.done).isEqualTo(DEFAULT_DONE)
     }
 
     @Test
     @Throws(Exception::class)
     fun createTripWithNotEnoughMarkers() {
-
-        TestSecurityContextHolder.getContext().authentication = TokenUtils.getJwtAuthenticationToken()
 
         val databaseSizeBeforeCreate = tripRepository.findAll().size
 
@@ -113,12 +111,108 @@ class TripControllerTest {
     @Test
     @Throws(Exception::class)
     fun getTripsList() {
-        TestSecurityContextHolder.getContext().authentication = TokenUtils.getJwtAuthenticationToken()
-
         restTripMockMvc.perform(get("/api/v1/trip")
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().is2xxSuccessful)
             .andExpect(MockMvcResultMatchers.jsonPath("\$.trips").exists())
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun markAsDone() {
+        val trips = tripRepository.findAllByAddedByUserId(DEFAULT_ADDED_BY_USER_ID)
+        val trip = trips[0]
+
+        restTripMockMvc.perform(
+            patch("/api/v1/trip/${trip.id}/done")
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().is2xxSuccessful)
+
+        val updatedTrip = tripRepository.findById(trip.id!!)
+
+        assertNotNull(trip)
+        assertNotNull(updatedTrip.get())
+        assertThat(updatedTrip.get().done).isEqualTo(true)
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun markAsDoneBadId() {
+        val badId = DEFAULT_ID + "12345"
+
+        restTripMockMvc.perform(
+            patch("/api/v1/trip/$badId/done")
+                .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().is4xxClientError)
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.code").value("TRIP_NOT_FOUND"))
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.status").value("NOT_FOUND"))
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun markAsUndone() {
+        val trips = tripRepository.findAllByAddedByUserId(DEFAULT_ADDED_BY_USER_ID)
+        val trip = trips[0]
+
+        restTripMockMvc.perform(
+            patch("/api/v1/trip/${trip.id}/undone")
+                .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().is2xxSuccessful)
+
+        val updatedTrip = tripRepository.findById(trip.id!!)
+
+        assertNotNull(trip)
+        assertNotNull(updatedTrip.get())
+        assertThat(updatedTrip.get().done).isEqualTo(false)
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun markAsUndoneBadId() {
+        TestSecurityContextHolder.getContext().authentication = TokenUtils.getJwtAuthenticationToken()
+
+        val badId = DEFAULT_ID + "12345"
+
+        restTripMockMvc.perform(
+            patch("/api/v1/trip/$badId/undone")
+                .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().is4xxClientError)
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.code").value("TRIP_NOT_FOUND"))
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.status").value("NOT_FOUND"))
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun deleteTrip() {
+        val trips = tripRepository.findAllByAddedByUserId(DEFAULT_ADDED_BY_USER_ID)
+        val trip = trips[0]
+
+        restTripMockMvc.perform(
+            delete("/api/v1/trip/${trip.id}/delete")
+                .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().is2xxSuccessful)
+
+        val tripExists = tripRepository.existsById(trip.id!!)
+
+        assertThat(tripExists).isEqualTo(false)
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun deleteTripBadId() {
+        TestSecurityContextHolder.getContext().authentication = TokenUtils.getJwtAuthenticationToken()
+
+        val badId = DEFAULT_ID + "12345"
+
+        restTripMockMvc.perform(
+            delete("/api/v1/trip/$badId/delete")
+                .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().is4xxClientError)
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.code").value("TRIP_NOT_FOUND"))
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.status").value("NOT_FOUND"))
     }
 
     @Test
@@ -157,13 +251,15 @@ class TripControllerTest {
 
         private const val DEFAULT_ROUTE = "{route: \"test\"}"
 
-        private const val DEFAULT_ADDED_BY_USER_ID = "user_id1"
+        private const val DEFAULT_ADDED_BY_USER_ID = "4b702c1a-5535-43a3-93ae-8d47548d497a"
 
         private const val DEFAULT_ESTIMATED_TIME = 1.0
 
         private const val DEFAULT_ESTIMATED_LENGTH = 1.0
 
         private val DEFAULT_TRAVEL_MODE = TravelMode.WALKING
+
+        private const val DEFAULT_DONE = false
 
         private const val DEFAULT_MARKER_1_ID = "id1"
 
@@ -199,7 +295,9 @@ class TripControllerTest {
             estimatedTime = DEFAULT_ESTIMATED_TIME,
             estimatedLength = DEFAULT_ESTIMATED_LENGTH,
             travelMode = DEFAULT_TRAVEL_MODE,
-            markers = DEFAULT_MARKERS)
+            markers = DEFAULT_MARKERS,
+            done = DEFAULT_DONE
+            )
 
         fun createTripDto(): CreateTripDto = CreateTripDto(
             route = DEFAULT_ROUTE,

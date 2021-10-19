@@ -21,4 +21,22 @@ class TripController(private val tripService: TripService) {
     @GetMapping
     fun getTrips(jwtAuthentication: JwtAuthenticationToken) =
         ResponseEntity<TripsDto>(tripService.getUserTrips(jwtAuthentication), HttpStatus.OK)
+
+    @PatchMapping("/{tripId}/done")
+    fun markTripAsDone(@PathVariable tripId: String, jwtAuthentication: JwtAuthenticationToken): ResponseEntity<Void> {
+        tripService.updateTripDoneFlag(jwtAuthentication, tripId, true)
+        return ResponseEntity.ok().build()
+    }
+
+    @PatchMapping("/{tripId}/undone")
+    fun markTripAsUndone(@PathVariable tripId: String, jwtAuthentication: JwtAuthenticationToken): ResponseEntity<Void> {
+        tripService.updateTripDoneFlag(jwtAuthentication, tripId, false)
+        return ResponseEntity.ok().build()
+    }
+
+    @DeleteMapping("/{tripId}/delete")
+    fun deleteTrip(@PathVariable tripId: String, jwtAuthentication: JwtAuthenticationToken): ResponseEntity<Void> {
+        tripService.deleteTrip(jwtAuthentication, tripId)
+        return ResponseEntity.ok().build()
+    }
 }
