@@ -6,4 +6,6 @@ import pl.adrian.planningtripsbackend.trip.model.entity.Trip
 
 @Repository
 interface TripRepository: MongoRepository<Trip, String> {
+
+    fun findAllByAddedByUserId(userId: String): List<Trip>
 }

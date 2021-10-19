@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service
 import pl.adrian.planningtripsbackend.trip.mapper.TripMapper
 import pl.adrian.planningtripsbackend.trip.model.dto.CreateTripDto
 import pl.adrian.planningtripsbackend.trip.model.dto.TripDto
+import pl.adrian.planningtripsbackend.trip.model.dto.TripsDto
 import pl.adrian.planningtripsbackend.trip.repository.TripRepository
 
 @Service
@@ -23,5 +24,13 @@ class TripService(private val tripRepository: TripRepository,
 
         val createdTrip = tripRepository.save(trip)
         return tripMapper.toTripDto(createdTrip)
+    }
+
+    fun getUserTrips(jwtAuthentication: JwtAuthenticationToken): TripsDto {
+        val jwt: Jwt = jwtAuthentication.principal as Jwt
+
+        val userTrips = tripRepository.findAllByAddedByUserId(jwt.subject.toString())
+        val userTripsDto = tripMapper.toTripsDto(userTrips)
+        return TripsDto(userTripsDto)
     }
 }
