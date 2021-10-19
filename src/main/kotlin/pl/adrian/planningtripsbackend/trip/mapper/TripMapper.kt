@@ -18,4 +18,6 @@ interface TripMapper {
     fun toTrip(createTripDto: CreateTripDto): Trip
 
     fun toTripDto(trip: Trip): TripDto
+
+    fun toTripsDto(trips: List<Trip>): List<TripDto>
 }

@@ -15,6 +15,7 @@ data class Trip(
     @CreatedDate
     var createdDate: Instant? = null,
 
+    var image: String = "",
     var route : String = "",
     var addedByUserId: String = "",
     var estimatedTime: Double = 0.0,

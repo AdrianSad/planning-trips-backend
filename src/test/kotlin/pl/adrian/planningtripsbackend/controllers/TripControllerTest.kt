@@ -12,6 +12,7 @@ import org.springframework.http.MediaType
 import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import pl.adrian.planningtripsbackend.PlanningTripsBackendApplication
 import pl.adrian.planningtripsbackend.config.TestSecurityConfiguration
 import pl.adrian.planningtripsbackend.trip.mapper.TripMapper
@@ -26,6 +27,7 @@ import java.time.Instant
 import java.util.*
 import kotlin.jvm.Throws
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import pl.adrian.planningtripsbackend.trip.model.dto.CreateTripDto
 import pl.adrian.planningtripsbackend.utils.TokenUtils
@@ -106,6 +108,17 @@ class TripControllerTest {
         val tripList = tripRepository.findAll()
 
         assertThat(tripList).hasSize(databaseSizeBeforeCreate)
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun getTripsList() {
+        TestSecurityContextHolder.getContext().authentication = TokenUtils.getJwtAuthenticationToken()
+
+        restTripMockMvc.perform(get("/api/v1/trip")
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().is2xxSuccessful)
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.trips").exists())
     }
 
     @Test

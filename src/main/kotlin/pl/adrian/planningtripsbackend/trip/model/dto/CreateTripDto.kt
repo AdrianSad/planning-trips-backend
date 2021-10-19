@@ -15,6 +15,8 @@ data class CreateTripDto(
     @field:NotBlank
     val route : String = "",
 
+    val image: String = "",
+
     @field:NotNull
     val estimatedTime: Double = 0.0,
 

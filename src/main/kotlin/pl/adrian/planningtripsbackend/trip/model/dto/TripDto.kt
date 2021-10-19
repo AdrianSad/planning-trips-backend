@@ -9,6 +9,7 @@ import java.util.*
 data class TripDto(
     var id: String? = "",
     var createdDate: Instant? = null,
+    var image: String = "",
     var route : String = "",
     var addedByUserId: String = "",
     var estimatedTime: Double = 0.0,
