@@ -21,6 +21,7 @@ data class Trip(
     var estimatedTime: Double = 0.0,
     var estimatedLength: Double = 0.0,
     var travelMode: TravelMode = TravelMode.WALKING,
-    var markers: List<Marker> = Collections.emptyList()
+    var markers: List<Marker> = Collections.emptyList(),
+    var done: Boolean = false
     ) {
 }

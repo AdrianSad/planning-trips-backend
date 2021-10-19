@@ -13,6 +13,7 @@ interface TripMapper {
     @Mappings(
         Mapping(target = "id", ignore = true),
         Mapping(target = "createdDate", ignore = true),
+        Mapping(target = "done", ignore = true),
         Mapping(target = "addedByUserId", ignore = true)
     )
     fun toTrip(createTripDto: CreateTripDto): Trip
