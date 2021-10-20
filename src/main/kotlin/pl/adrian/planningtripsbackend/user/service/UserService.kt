@@ -5,6 +5,7 @@ import org.keycloak.admin.client.resource.UsersResource
 import org.keycloak.representations.AccessTokenResponse
 import org.keycloak.representations.idm.CredentialRepresentation
 import org.keycloak.representations.idm.UserRepresentation
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Service
 import org.springframework.util.CollectionUtils
 import pl.adrian.planningtripsbackend.config.keycloak.KeycloakConfig
@@ -13,6 +14,7 @@ import pl.adrian.planningtripsbackend.exception.model.BadRequestException
 import pl.adrian.planningtripsbackend.user.mapper.UserMapper
 import pl.adrian.planningtripsbackend.user.model.dto.AuthenticateUserDto
 import pl.adrian.planningtripsbackend.user.model.dto.CreateUserDto
+import pl.adrian.planningtripsbackend.user.model.dto.UserDto
 import pl.adrian.planningtripsbackend.user.model.entity.User
 import java.util.*
 
@@ -58,5 +60,9 @@ class UserService(private val userMapper: UserMapper,
             .onFailure { throw BadRequestException("INVALID_CREDENTIALS", it.message!!) }
             .get().tokenManager().accessToken
         return atr
+    }
+
+    fun getUserData(jwtAuthentication: JwtAuthenticationToken): UserDto {
+        TODO("Not yet implemented");
     }
 }

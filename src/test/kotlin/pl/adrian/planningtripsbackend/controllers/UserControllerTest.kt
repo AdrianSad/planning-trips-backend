@@ -55,7 +55,7 @@ class UserControllerTest {
         restUserMockMvc.perform(MockMvcRequestBuilders.post("/api/v1/user/register")
             .contentType(MediaType.APPLICATION_JSON)
             .content(writeValueAsBytes))
-            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.status().isCreated)
     }
 
     @Test
