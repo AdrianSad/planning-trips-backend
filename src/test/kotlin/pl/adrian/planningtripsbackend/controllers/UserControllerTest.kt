@@ -124,6 +124,7 @@ class UserControllerTest {
             .andExpect(MockMvcResultMatchers.jsonPath("\$.id").exists())
             .andExpect(MockMvcResultMatchers.jsonPath("\$.trips").exists())
             .andExpect(MockMvcResultMatchers.jsonPath("\$.statistics").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.createdDate").exists())
     }
 
     @Test
@@ -156,6 +157,7 @@ class UserControllerTest {
             .andExpect(MockMvcResultMatchers.jsonPath("\$.id").exists())
             .andExpect(MockMvcResultMatchers.jsonPath("\$.trips").exists())
             .andExpect(MockMvcResultMatchers.jsonPath("\$.statistics").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.createdDate").exists())
     }
 
     @Test
