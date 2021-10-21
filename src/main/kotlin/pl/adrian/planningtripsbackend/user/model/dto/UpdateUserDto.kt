@@ -1,5 +1,6 @@
 package pl.adrian.planningtripsbackend.user.model.dto
 
+import pl.adrian.planningtripsbackend.user.model.entity.Gender
 import javax.validation.constraints.NotNull
 
 data class UpdateUserDto(
@@ -11,6 +12,9 @@ data class UpdateUserDto(
     val age: Int? = null,
 
     @field:NotNull
-    val height: Double? = null
+    val height: Double? = null,
+
+    @field:NotNull
+    val gender: Gender? = null,
 ) {
 }
