@@ -71,7 +71,13 @@ class UserService(
     }
 
     fun getUserData(jwtAuthentication: JwtAuthenticationToken): UserDto {
-        TODO("Not yet implemented");
+        val jwt: Jwt = jwtAuthentication.principal as Jwt
+        val usersResource: UsersResource =
+            KeycloakConfig.getInstance(keycloakProperties).realm(keycloakProperties.realm).users()
+
+        val foundUserResource = usersResource.get(jwt.subject.toString())
+        val foundUser = foundUserResource.toRepresentation()
+        return UserDto(id = foundUser.id, username = foundUser.username, email = foundUser.email)
     }
 
     fun updateUserData(

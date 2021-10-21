@@ -110,6 +110,24 @@ class UserControllerTest {
 
     @Test
     @Throws(Exception::class)
+    fun getUserData() {
+
+        TestSecurityContextHolder.getContext().authentication = TokenUtils.getJwtAuthenticationToken()
+
+        restUserMockMvc.perform(
+            MockMvcRequestBuilders.get("/api/v1/user")
+        )
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.email").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.username").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.id").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.trips").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.statistics").exists())
+    }
+
+    @Test
+    @Throws(Exception::class)
     fun updateUser() {
         TestSecurityContextHolder.getContext().authentication = TokenUtils.getJwtAuthenticationToken()
 
