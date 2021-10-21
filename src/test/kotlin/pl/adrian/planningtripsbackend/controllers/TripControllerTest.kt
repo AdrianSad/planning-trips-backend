@@ -259,7 +259,7 @@ class TripControllerTest {
 
         private const val DEFAULT_ROUTE = "{route: \"test\"}"
 
-        private const val DEFAULT_ADDED_BY_USER_ID = "4b702c1a-5535-43a3-93ae-8d47548d497a"
+        private const val DEFAULT_ADDED_BY_USER_ID = "b8338d29-a826-47dc-9f6c-5adf3234ed7f"
 
         private const val DEFAULT_ESTIMATED_TIME = 1.0
 
