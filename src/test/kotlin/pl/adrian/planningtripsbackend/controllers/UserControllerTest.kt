@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
+import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -20,7 +21,9 @@ import pl.adrian.planningtripsbackend.config.TestSecurityConfiguration
 import pl.adrian.planningtripsbackend.user.mapper.UserMapper
 import pl.adrian.planningtripsbackend.user.model.dto.AuthenticateUserDto
 import pl.adrian.planningtripsbackend.user.model.dto.CreateUserDto
+import pl.adrian.planningtripsbackend.user.model.dto.UpdateUserDto
 import pl.adrian.planningtripsbackend.user.model.entity.User
+import pl.adrian.planningtripsbackend.utils.TokenUtils
 import kotlin.jvm.Throws
 
 @AutoConfigureMockMvc
@@ -43,7 +46,7 @@ class UserControllerTest {
 
     @Test
     @Throws(Exception::class)
-    fun createUser(){
+    fun createUser() {
 
         val createUserDto = CreateUserDto(
             DEFAULT_USERNAME + RandomStringUtils.randomAlphabetic(5),
@@ -52,15 +55,17 @@ class UserControllerTest {
         )
         val writeValueAsBytes = ObjectMapper().writeValueAsBytes(createUserDto)
 
-        restUserMockMvc.perform(MockMvcRequestBuilders.post("/api/v1/user/register")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(writeValueAsBytes))
+        restUserMockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/user/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(writeValueAsBytes)
+        )
             .andExpect(MockMvcResultMatchers.status().isCreated)
     }
 
     @Test
     @Throws(Exception::class)
-    fun createUserWhichAlreadyExists(){
+    fun createUserWhichAlreadyExists() {
 
         val createUserDto = CreateUserDto(
             DEFAULT_USERNAME,
@@ -69,9 +74,11 @@ class UserControllerTest {
         )
         val writeValueAsBytes = ObjectMapper().writeValueAsBytes(createUserDto)
 
-        restUserMockMvc.perform(MockMvcRequestBuilders.post("/api/v1/user/register")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(writeValueAsBytes))
+        restUserMockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/user/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(writeValueAsBytes)
+        )
             .andExpect(MockMvcResultMatchers.status().is4xxClientError)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(MockMvcResultMatchers.jsonPath("\$.code").value("USER_ALREADY_EXISTS"))
@@ -81,14 +88,16 @@ class UserControllerTest {
 
     @Test
     @Throws(Exception::class)
-    fun getUser(){
+    fun getUser() {
 
         val authenticateUserDto = AuthenticateUserDto(DEFAULT_EMAIL, DEFAULT_PASSWORD)
         val writeValueAsBytes = ObjectMapper().writeValueAsBytes(authenticateUserDto)
 
-        restUserMockMvc.perform(MockMvcRequestBuilders.post("/api/v1/user/login")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(writeValueAsBytes))
+        restUserMockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/user/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(writeValueAsBytes)
+        )
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(MockMvcResultMatchers.jsonPath("\$.access_token").exists())
@@ -97,6 +106,57 @@ class UserControllerTest {
             .andExpect(MockMvcResultMatchers.jsonPath("\$.refresh_expires_in").exists())
             .andExpect(MockMvcResultMatchers.jsonPath("\$.token_type").exists())
             .andExpect(MockMvcResultMatchers.jsonPath("\$.scope").exists())
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun updateUser() {
+        TestSecurityContextHolder.getContext().authentication = TokenUtils.getJwtAuthenticationToken()
+
+        val UPDATE_WEIGHT = 1.5
+        val UPDATE_HEIGHT = 1.6
+        val UPDATE_AGE = 2
+
+        val authenticateUserDto = UpdateUserDto(weight = UPDATE_WEIGHT, height = UPDATE_HEIGHT, age = UPDATE_AGE)
+        val writeValueAsBytes = ObjectMapper().writeValueAsBytes(authenticateUserDto)
+
+        restUserMockMvc.perform(
+            MockMvcRequestBuilders.put("/api/v1/user")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(writeValueAsBytes)
+        )
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.weight").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.weight").value(UPDATE_WEIGHT))
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.height").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.height").value(UPDATE_HEIGHT))
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.age").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.age").value(UPDATE_AGE))
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.email").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.username").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.id").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.trips").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.statistics").exists())
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun updateUserWithMissingData() {
+        TestSecurityContextHolder.getContext().authentication = TokenUtils.getJwtAuthenticationToken()
+
+        val UPDATE_WEIGHT = 1.5
+        val UPDATE_HEIGHT = 1.6
+
+        val authenticateUserDto = UpdateUserDto(weight = UPDATE_WEIGHT, height = UPDATE_HEIGHT)
+        val writeValueAsBytes = ObjectMapper().writeValueAsBytes(authenticateUserDto)
+
+        restUserMockMvc.perform(
+            MockMvcRequestBuilders.put("/api/v1/user")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(writeValueAsBytes)
+        )
+            .andExpect(MockMvcResultMatchers.status().is4xxClientError)
     }
 
     @Test

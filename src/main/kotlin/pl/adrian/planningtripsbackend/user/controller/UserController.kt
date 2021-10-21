@@ -7,6 +7,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.web.bind.annotation.*
 import pl.adrian.planningtripsbackend.user.model.dto.AuthenticateUserDto
 import pl.adrian.planningtripsbackend.user.model.dto.CreateUserDto
+import pl.adrian.planningtripsbackend.user.model.dto.UpdateUserDto
 import pl.adrian.planningtripsbackend.user.model.dto.UserDto
 import pl.adrian.planningtripsbackend.user.service.UserService
 import javax.validation.Valid
@@ -26,4 +27,8 @@ class UserController(private val userService: UserService) {
     @GetMapping
     fun getUserData(jwtAuthentication: JwtAuthenticationToken) =
         ResponseEntity<UserDto>(userService.getUserData(jwtAuthentication), HttpStatus.OK)
+
+    @PutMapping
+    fun updateUser(@RequestBody @Valid updateUserDto: UpdateUserDto, jwtAuthentication: JwtAuthenticationToken) =
+        ResponseEntity<UserDto>(userService.updateUserData(jwtAuthentication, updateUserDto), HttpStatus.OK)
 }

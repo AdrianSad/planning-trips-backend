@@ -14,8 +14,10 @@ import pl.adrian.planningtripsbackend.trip.repository.TripRepository
 import pl.adrian.planningtripsbackend.utils.ValidationUtils
 
 @Service
-class TripService(private val tripRepository: TripRepository,
-                  private val tripMapper: TripMapper) {
+class TripService(
+    private val tripRepository: TripRepository,
+    private val tripMapper: TripMapper
+) {
 
     fun createTrip(createTripDto: CreateTripDto, jwtAuthentication: JwtAuthenticationToken): TripDto {
 
@@ -28,12 +30,12 @@ class TripService(private val tripRepository: TripRepository,
         return tripMapper.toTripDto(createdTrip)
     }
 
-    fun getUserTrips(jwtAuthentication: JwtAuthenticationToken): TripsDto {
+    fun getUserTrips(jwtAuthentication: JwtAuthenticationToken): List<TripDto> {
         val jwt: Jwt = jwtAuthentication.principal as Jwt
 
         val userTrips = tripRepository.findAllByAddedByUserId(jwt.subject.toString())
         val userTripsDto = tripMapper.toTripsDto(userTrips)
-        return TripsDto(userTripsDto)
+        return (userTripsDto)
     }
 
     fun updateTripDoneFlag(jwtAuthentication: JwtAuthenticationToken, tripId: String, done: Boolean) {
