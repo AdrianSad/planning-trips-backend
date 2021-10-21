@@ -20,6 +20,7 @@ import pl.adrian.planningtripsbackend.user.model.dto.CreateUserDto
 import pl.adrian.planningtripsbackend.user.model.dto.UpdateUserDto
 import pl.adrian.planningtripsbackend.user.model.dto.UserDto
 import pl.adrian.planningtripsbackend.user.model.entity.User
+import java.time.Instant
 import java.util.*
 
 @Service
@@ -77,7 +78,23 @@ class UserService(
 
         val foundUserResource = usersResource.get(jwt.subject.toString())
         val foundUser = foundUserResource.toRepresentation()
-        return UserDto(id = foundUser.id, username = foundUser.username, email = foundUser.email)
+        return mapKeycloakUserToUserDTO(foundUser, jwtAuthentication)
+    }
+
+    private fun mapKeycloakUserToUserDTO(
+        foundUser: UserRepresentation,
+        jwtAuthentication: JwtAuthenticationToken
+    ): UserDto {
+        return UserDto(
+            id = foundUser.id,
+            username = foundUser.username,
+            email = foundUser.email,
+            createdDate = Instant.ofEpochMilli(foundUser.createdTimestamp),
+            weight = foundUser.attributes["weight"]!![0].toDouble(),
+            height = foundUser.attributes["height"]!![0].toDouble(),
+            age = foundUser.attributes["age"]!![0].toInt(),
+            trips = tripService.getUserTrips(jwtAuthentication)
+        )
     }
 
     fun updateUserData(
@@ -98,14 +115,6 @@ class UserService(
         ).toMutableMap()
 
         foundUserResource.update(foundUser)
-        return UserDto(
-            id = foundUser.id,
-            email = foundUser.email,
-            username = foundUser.username,
-            weight = foundUser.attributes["weight"]!![0].toDouble(),
-            height = foundUser.attributes["height"]!![0].toDouble(),
-            age = foundUser.attributes["age"]!![0].toInt(),
-            trips = tripService.getUserTrips(jwtAuthentication)
-        )
+        return mapKeycloakUserToUserDTO(foundUser, jwtAuthentication)
     }
 }

@@ -11,14 +11,14 @@ import org.springframework.web.cors.CorsConfiguration
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(jsr250Enabled = true)
-class SecurityConfig: WebSecurityConfigurerAdapter() {
+class SecurityConfig : WebSecurityConfigurerAdapter() {
 
     @Throws(Exception::class)
     override fun configure(http: HttpSecurity) {
         http.headers().frameOptions().disable()
         http
             .csrf().disable()
-            .cors().configurationSource{getCorsConfiguration()}
+            .cors().configurationSource { getCorsConfiguration() }
             .and()
             .authorizeRequests()
             .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -34,6 +34,7 @@ class SecurityConfig: WebSecurityConfigurerAdapter() {
         val corsConfiguration = CorsConfiguration().applyPermitDefaultValues()
         corsConfiguration.addAllowedMethod(HttpMethod.PATCH)
         corsConfiguration.addAllowedMethod(HttpMethod.DELETE)
+        corsConfiguration.addAllowedMethod(HttpMethod.PUT)
         return corsConfiguration
     }
 }
