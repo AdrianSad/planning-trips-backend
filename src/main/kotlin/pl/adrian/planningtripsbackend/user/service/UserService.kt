@@ -5,6 +5,7 @@ import org.keycloak.admin.client.resource.UsersResource
 import org.keycloak.representations.AccessTokenResponse
 import org.keycloak.representations.idm.CredentialRepresentation
 import org.keycloak.representations.idm.UserRepresentation
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Service
 import org.springframework.util.CollectionUtils
@@ -19,16 +20,18 @@ import pl.adrian.planningtripsbackend.user.model.entity.User
 import java.util.*
 
 @Service
-class UserService(private val userMapper: UserMapper,
-                  private val keycloakProperties: KeycloakProperties
+class UserService(
+    private val userMapper: UserMapper,
+    private val keycloakProperties: KeycloakProperties
 ) {
 
     fun addUser(createUserDto: CreateUserDto) {
         val user: User = userMapper.toUser(createUserDto)
-        val usersResource: UsersResource = KeycloakConfig.getInstance(keycloakProperties).realm(keycloakProperties.realm).users()
+        val usersResource: UsersResource =
+            KeycloakConfig.getInstance(keycloakProperties).realm(keycloakProperties.realm).users()
 
         val search = usersResource.search(null, null, null, user.email, null, null)
-        if(!CollectionUtils.isEmpty(search)) {
+        if (!CollectionUtils.isEmpty(search)) {
             throw BadRequestException("USER_ALREADY_EXISTS", "User with this email already exists")
         }
 
@@ -42,8 +45,7 @@ class UserService(private val userMapper: UserMapper,
         usersResource.create(kcUser)
     }
 
-    private fun createPasswordCredentials(password: String) : CredentialRepresentation
-    {
+    private fun createPasswordCredentials(password: String): CredentialRepresentation {
         val passwordCredentials = CredentialRepresentation();
         passwordCredentials.isTemporary = false;
         passwordCredentials.type = CredentialRepresentation.PASSWORD;
@@ -52,17 +54,25 @@ class UserService(private val userMapper: UserMapper,
     }
 
     fun getUserJWT(authenticateUserDto: AuthenticateUserDto): AccessTokenResponse? {
-        val atr = Try.of { KeycloakConfig.getInstanceByUserCredentials(
-            authenticateUserDto.email!!,
-            authenticateUserDto.password!!,
-            keycloakProperties
-        ) }
+        val atr = Try.of {
+            KeycloakConfig.getInstanceByUserCredentials(
+                authenticateUserDto.email!!,
+                authenticateUserDto.password!!,
+                keycloakProperties
+            )
+        }
             .onFailure { throw BadRequestException("INVALID_CREDENTIALS", it.message!!) }
             .get().tokenManager().accessToken
         return atr
     }
 
     fun getUserData(jwtAuthentication: JwtAuthenticationToken): UserDto {
-        TODO("Not yet implemented");
+        val jwt: Jwt = jwtAuthentication.principal as Jwt
+        val usersResource: UsersResource =
+            KeycloakConfig.getInstance(keycloakProperties).realm(keycloakProperties.realm).users()
+
+        val foundUserResource = usersResource.get(jwt.subject.toString())
+        val foundUser = foundUserResource.toRepresentation()
+        return UserDto(id = foundUser.id, username = foundUser.username, email = foundUser.email)
     }
 }

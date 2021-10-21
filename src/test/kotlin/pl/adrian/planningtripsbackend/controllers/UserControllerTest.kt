@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
+import org.springframework.security.test.context.TestSecurityContextHolder
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -21,6 +22,7 @@ import pl.adrian.planningtripsbackend.user.mapper.UserMapper
 import pl.adrian.planningtripsbackend.user.model.dto.AuthenticateUserDto
 import pl.adrian.planningtripsbackend.user.model.dto.CreateUserDto
 import pl.adrian.planningtripsbackend.user.model.entity.User
+import pl.adrian.planningtripsbackend.utils.TokenUtils
 import kotlin.jvm.Throws
 
 @AutoConfigureMockMvc
@@ -43,7 +45,7 @@ class UserControllerTest {
 
     @Test
     @Throws(Exception::class)
-    fun createUser(){
+    fun createUser() {
 
         val createUserDto = CreateUserDto(
             DEFAULT_USERNAME + RandomStringUtils.randomAlphabetic(5),
@@ -52,15 +54,17 @@ class UserControllerTest {
         )
         val writeValueAsBytes = ObjectMapper().writeValueAsBytes(createUserDto)
 
-        restUserMockMvc.perform(MockMvcRequestBuilders.post("/api/v1/user/register")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(writeValueAsBytes))
+        restUserMockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/user/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(writeValueAsBytes)
+        )
             .andExpect(MockMvcResultMatchers.status().isCreated)
     }
 
     @Test
     @Throws(Exception::class)
-    fun createUserWhichAlreadyExists(){
+    fun createUserWhichAlreadyExists() {
 
         val createUserDto = CreateUserDto(
             DEFAULT_USERNAME,
@@ -69,9 +73,11 @@ class UserControllerTest {
         )
         val writeValueAsBytes = ObjectMapper().writeValueAsBytes(createUserDto)
 
-        restUserMockMvc.perform(MockMvcRequestBuilders.post("/api/v1/user/register")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(writeValueAsBytes))
+        restUserMockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/user/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(writeValueAsBytes)
+        )
             .andExpect(MockMvcResultMatchers.status().is4xxClientError)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(MockMvcResultMatchers.jsonPath("\$.code").value("USER_ALREADY_EXISTS"))
@@ -81,14 +87,16 @@ class UserControllerTest {
 
     @Test
     @Throws(Exception::class)
-    fun getUser(){
+    fun getUser() {
 
         val authenticateUserDto = AuthenticateUserDto(DEFAULT_EMAIL, DEFAULT_PASSWORD)
         val writeValueAsBytes = ObjectMapper().writeValueAsBytes(authenticateUserDto)
 
-        restUserMockMvc.perform(MockMvcRequestBuilders.post("/api/v1/user/login")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(writeValueAsBytes))
+        restUserMockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/user/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(writeValueAsBytes)
+        )
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(MockMvcResultMatchers.jsonPath("\$.access_token").exists())
@@ -97,6 +105,24 @@ class UserControllerTest {
             .andExpect(MockMvcResultMatchers.jsonPath("\$.refresh_expires_in").exists())
             .andExpect(MockMvcResultMatchers.jsonPath("\$.token_type").exists())
             .andExpect(MockMvcResultMatchers.jsonPath("\$.scope").exists())
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun getUserData() {
+
+        TestSecurityContextHolder.getContext().authentication = TokenUtils.getJwtAuthenticationToken()
+
+        restUserMockMvc.perform(
+            MockMvcRequestBuilders.get("/api/v1/user")
+        )
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.email").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.username").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.id").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.trips").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.statistics").exists())
     }
 
     @Test
