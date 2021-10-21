@@ -9,12 +9,15 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Service
 import org.springframework.util.CollectionUtils
+import org.springframework.util.MultiValueMap
 import pl.adrian.planningtripsbackend.config.keycloak.KeycloakConfig
 import pl.adrian.planningtripsbackend.config.keycloak.KeycloakProperties
 import pl.adrian.planningtripsbackend.exception.model.BadRequestException
+import pl.adrian.planningtripsbackend.trip.service.TripService
 import pl.adrian.planningtripsbackend.user.mapper.UserMapper
 import pl.adrian.planningtripsbackend.user.model.dto.AuthenticateUserDto
 import pl.adrian.planningtripsbackend.user.model.dto.CreateUserDto
+import pl.adrian.planningtripsbackend.user.model.dto.UpdateUserDto
 import pl.adrian.planningtripsbackend.user.model.dto.UserDto
 import pl.adrian.planningtripsbackend.user.model.entity.User
 import java.util.*
@@ -22,7 +25,8 @@ import java.util.*
 @Service
 class UserService(
     private val userMapper: UserMapper,
-    private val keycloakProperties: KeycloakProperties
+    private val keycloakProperties: KeycloakProperties,
+    private val tripService: TripService
 ) {
 
     fun addUser(createUserDto: CreateUserDto) {
@@ -74,5 +78,34 @@ class UserService(
         val foundUserResource = usersResource.get(jwt.subject.toString())
         val foundUser = foundUserResource.toRepresentation()
         return UserDto(id = foundUser.id, username = foundUser.username, email = foundUser.email)
+    }
+
+    fun updateUserData(
+        jwtAuthentication: JwtAuthenticationToken,
+        updateUserDto: UpdateUserDto
+    ): UserDto {
+        val jwt: Jwt = jwtAuthentication.principal as Jwt
+        val usersResource: UsersResource =
+            KeycloakConfig.getInstance(keycloakProperties).realm(keycloakProperties.realm).users()
+
+        val foundUserResource = usersResource.get(jwt.subject.toString())
+        val foundUser = foundUserResource.toRepresentation()
+
+        foundUser.attributes = mapOf(
+            "weight" to listOf(updateUserDto.weight.toString()),
+            "height" to listOf(updateUserDto.height.toString()),
+            "age" to listOf(updateUserDto.age.toString())
+        ).toMutableMap()
+
+        foundUserResource.update(foundUser)
+        return UserDto(
+            id = foundUser.id,
+            email = foundUser.email,
+            username = foundUser.username,
+            weight = foundUser.attributes["weight"]!![0].toDouble(),
+            height = foundUser.attributes["height"]!![0].toDouble(),
+            age = foundUser.attributes["age"]!![0].toInt(),
+            trips = tripService.getUserTrips(jwtAuthentication)
+        )
     }
 }

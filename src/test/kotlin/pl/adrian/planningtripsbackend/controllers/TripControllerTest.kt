@@ -68,9 +68,11 @@ class TripControllerTest {
 
         val writeValueAsBytes = ObjectMapper().writeValueAsBytes(createTripDto)
 
-        restTripMockMvc.perform(post("/api/v1/trip")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(writeValueAsBytes))
+        restTripMockMvc.perform(
+            post("/api/v1/trip")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(writeValueAsBytes)
+        )
             .andExpect(status().isCreated)
 
         val tripList = tripRepository.findAll()
@@ -97,9 +99,11 @@ class TripControllerTest {
 
         val writeValueAsBytes = ObjectMapper().writeValueAsBytes(badTrip)
 
-        restTripMockMvc.perform(post("/api/v1/trip")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(writeValueAsBytes))
+        restTripMockMvc.perform(
+            post("/api/v1/trip")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(writeValueAsBytes)
+        )
             .andExpect(status().is4xxClientError)
 
 
@@ -111,8 +115,10 @@ class TripControllerTest {
     @Test
     @Throws(Exception::class)
     fun getTripsList() {
-        restTripMockMvc.perform(get("/api/v1/trip")
-            .contentType(MediaType.APPLICATION_JSON))
+        restTripMockMvc.perform(
+            get("/api/v1/trip")
+                .contentType(MediaType.APPLICATION_JSON)
+        )
             .andExpect(status().is2xxSuccessful)
             .andExpect(MockMvcResultMatchers.jsonPath("\$.trips").exists())
     }
@@ -125,7 +131,8 @@ class TripControllerTest {
 
         restTripMockMvc.perform(
             patch("/api/v1/trip/${trip.id}/done")
-            .contentType(MediaType.APPLICATION_JSON))
+                .contentType(MediaType.APPLICATION_JSON)
+        )
             .andExpect(status().is2xxSuccessful)
 
         val updatedTrip = tripRepository.findById(trip.id!!)
@@ -142,7 +149,8 @@ class TripControllerTest {
 
         restTripMockMvc.perform(
             patch("/api/v1/trip/$badId/done")
-                .contentType(MediaType.APPLICATION_JSON))
+                .contentType(MediaType.APPLICATION_JSON)
+        )
             .andExpect(status().is4xxClientError)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(MockMvcResultMatchers.jsonPath("\$.code").value("TRIP_NOT_FOUND"))
@@ -157,7 +165,8 @@ class TripControllerTest {
 
         restTripMockMvc.perform(
             patch("/api/v1/trip/${trip.id}/undone")
-                .contentType(MediaType.APPLICATION_JSON))
+                .contentType(MediaType.APPLICATION_JSON)
+        )
             .andExpect(status().is2xxSuccessful)
 
         val updatedTrip = tripRepository.findById(trip.id!!)
@@ -170,13 +179,12 @@ class TripControllerTest {
     @Test
     @Throws(Exception::class)
     fun markAsUndoneBadId() {
-        TestSecurityContextHolder.getContext().authentication = TokenUtils.getJwtAuthenticationToken()
-
         val badId = DEFAULT_ID + "12345"
 
         restTripMockMvc.perform(
             patch("/api/v1/trip/$badId/undone")
-                .contentType(MediaType.APPLICATION_JSON))
+                .contentType(MediaType.APPLICATION_JSON)
+        )
             .andExpect(status().is4xxClientError)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(MockMvcResultMatchers.jsonPath("\$.code").value("TRIP_NOT_FOUND"))
@@ -191,7 +199,8 @@ class TripControllerTest {
 
         restTripMockMvc.perform(
             delete("/api/v1/trip/${trip.id}/delete")
-                .contentType(MediaType.APPLICATION_JSON))
+                .contentType(MediaType.APPLICATION_JSON)
+        )
             .andExpect(status().is2xxSuccessful)
 
         val tripExists = tripRepository.existsById(trip.id!!)
@@ -202,13 +211,12 @@ class TripControllerTest {
     @Test
     @Throws(Exception::class)
     fun deleteTripBadId() {
-        TestSecurityContextHolder.getContext().authentication = TokenUtils.getJwtAuthenticationToken()
-
         val badId = DEFAULT_ID + "12345"
 
         restTripMockMvc.perform(
             delete("/api/v1/trip/$badId/delete")
-                .contentType(MediaType.APPLICATION_JSON))
+                .contentType(MediaType.APPLICATION_JSON)
+        )
             .andExpect(status().is4xxClientError)
             .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(MockMvcResultMatchers.jsonPath("\$.code").value("TRIP_NOT_FOUND"))
@@ -251,7 +259,7 @@ class TripControllerTest {
 
         private const val DEFAULT_ROUTE = "{route: \"test\"}"
 
-        private const val DEFAULT_ADDED_BY_USER_ID = "4b702c1a-5535-43a3-93ae-8d47548d497a"
+        private const val DEFAULT_ADDED_BY_USER_ID = "b8338d29-a826-47dc-9f6c-5adf3234ed7f"
 
         private const val DEFAULT_ESTIMATED_TIME = 1.0
 
@@ -277,15 +285,18 @@ class TripControllerTest {
                 title = DEFAULT_MARKER_TITLE,
                 position = Position(
                     latitude = DEFAULT_MARKER_LAT,
-                    longitude = DEFAULT_MARKER_LNG)
+                    longitude = DEFAULT_MARKER_LNG
+                )
             ),
             Marker(
                 id = DEFAULT_MARKER_2_ID,
                 title = DEFAULT_MARKER_TITLE,
                 position = Position(
                     latitude = DEFAULT_MARKER_LAT,
-                    longitude = DEFAULT_MARKER_LNG)
-            ))
+                    longitude = DEFAULT_MARKER_LNG
+                )
+            )
+        )
 
         fun createTrip(): Trip = Trip(
             id = DEFAULT_ID,
@@ -297,13 +308,14 @@ class TripControllerTest {
             travelMode = DEFAULT_TRAVEL_MODE,
             markers = DEFAULT_MARKERS,
             done = DEFAULT_DONE
-            )
+        )
 
         fun createTripDto(): CreateTripDto = CreateTripDto(
             route = DEFAULT_ROUTE,
             estimatedTime = DEFAULT_ESTIMATED_TIME,
             estimatedLength = DEFAULT_ESTIMATED_LENGTH,
             travelMode = DEFAULT_TRAVEL_MODE,
-            markers = DEFAULT_MARKERS)
+            markers = DEFAULT_MARKERS
+        )
     }
 }
