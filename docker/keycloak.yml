@@ -4,21 +4,26 @@ services:
     image: jboss/keycloak:10.0.0
     command:
       [
-        '-b',
-        '0.0.0.0',
-        '-Dkeycloak.migration.action=import',
-        '-Dkeycloak.migration.provider=dir',
-        '-Dkeycloak.migration.dir=/opt/jboss/keycloak/realm-config',
-        '-Dkeycloak.migration.strategy=OVERWRITE_EXISTING',
-        '-Djboss.socket.binding.port-offset=1000',
-        '-Dkeycloak.profile.feature.upload_scripts=enabled',
+          '-b',
+          '0.0.0.0',
+          '-Dkeycloak.migration.action=import',
+          '-Dkeycloak.migration.provider=dir',
+          '-Dkeycloak.migration.dir=/opt/jboss/keycloak/realm-config',
+          '-Dkeycloak.migration.strategy=OVERWRITE_EXISTING',
+          '-Djboss.socket.binding.port-offset=1000',
+          '-Dkeycloak.profile.feature.upload_scripts=enabled',
       ]
     volumes:
       - ./realm-config:/opt/jboss/keycloak/realm-config
     environment:
       - KEYCLOAK_USER=admin
       - KEYCLOAK_PASSWORD=admin
-      - DB_VENDOR=h2
+      - DB_VENDOR=POSTGRES
+      - DB_DATABASE=keycloak
+      - DB_USER=admin
+      - DB_SCHEMA=public
+      - DB_PASSWORD=admin
+      - DB_ADDR=postgresql
     ports:
       - 9080:9080
       - 9443:9443

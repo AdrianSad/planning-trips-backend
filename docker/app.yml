@@ -1,0 +1,27 @@
+version: '2'
+services:
+  postgresql:
+    extends:
+      file: postgresql.yml
+      service: postgresql
+  keycloak:
+    extends:
+      file: keycloak.yml
+      service: keycloak
+    depends_on:
+      postgresql:
+        condition: service_started
+  planning_trips_backend:
+    extends:
+      file: backend.yml
+      service: planning_trips_backend
+    environment:
+      MONGO_USER: $MONGO_USER
+      MONGO_PASSWORD: $MONGO_PASSWORD
+      ISSUER_URI: $ISSUER_URI
+    depends_on:
+      keycloak:
+        condition: service_started
+      postgresql:
+        condition: service_started
+    restart: on-failure

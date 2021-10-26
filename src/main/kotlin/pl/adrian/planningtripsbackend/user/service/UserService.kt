@@ -9,17 +9,16 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Service
 import org.springframework.util.CollectionUtils
-import org.springframework.util.MultiValueMap
 import pl.adrian.planningtripsbackend.config.keycloak.KeycloakConfig
 import pl.adrian.planningtripsbackend.config.keycloak.KeycloakProperties
 import pl.adrian.planningtripsbackend.exception.model.BadRequestException
+import pl.adrian.planningtripsbackend.trip.model.dto.TripDto
 import pl.adrian.planningtripsbackend.trip.service.TripService
 import pl.adrian.planningtripsbackend.user.mapper.UserMapper
-import pl.adrian.planningtripsbackend.user.model.dto.AuthenticateUserDto
-import pl.adrian.planningtripsbackend.user.model.dto.CreateUserDto
-import pl.adrian.planningtripsbackend.user.model.dto.UpdateUserDto
-import pl.adrian.planningtripsbackend.user.model.dto.UserDto
+import pl.adrian.planningtripsbackend.user.model.dto.*
+import pl.adrian.planningtripsbackend.user.model.entity.Gender
 import pl.adrian.planningtripsbackend.user.model.entity.User
+import pl.adrian.planningtripsbackend.utils.CaloriesUtils
 import java.time.Instant
 import java.util.*
 
@@ -85,15 +84,25 @@ class UserService(
         foundUser: UserRepresentation,
         jwtAuthentication: JwtAuthenticationToken
     ): UserDto {
+        val trips = tripService.getUserTrips(jwtAuthentication)
+        val weight = foundUser.attributes?.get("weight")?.get(0)?.toDouble()
+        val height = foundUser.attributes?.get("height")?.get(0)?.toDouble()
+        val age = foundUser.attributes?.get("age")?.get(0)?.toInt()
+        val gender =
+            if (foundUser.attributes?.get("gender")
+                    ?.get(0) != null
+            ) Gender.valueOf(foundUser.attributes["gender"]!![0]) else null
         return UserDto(
             id = foundUser.id,
             username = foundUser.username,
             email = foundUser.email,
             createdDate = Instant.ofEpochMilli(foundUser.createdTimestamp),
-            weight = foundUser.attributes["weight"]!![0].toDouble(),
-            height = foundUser.attributes["height"]!![0].toDouble(),
-            age = foundUser.attributes["age"]!![0].toInt(),
-            trips = tripService.getUserTrips(jwtAuthentication)
+            weight = weight,
+            height = height,
+            age = age,
+            trips = trips,
+            gender = gender,
+            statistics = calculateUserStatistics(trips, weight, height, age, gender)
         )
     }
 
@@ -111,10 +120,45 @@ class UserService(
         foundUser.attributes = mapOf(
             "weight" to listOf(updateUserDto.weight.toString()),
             "height" to listOf(updateUserDto.height.toString()),
-            "age" to listOf(updateUserDto.age.toString())
+            "age" to listOf(updateUserDto.age.toString()),
+            "gender" to listOf(updateUserDto.gender.toString())
         ).toMutableMap()
 
         foundUserResource.update(foundUser)
         return mapKeycloakUserToUserDTO(foundUser, jwtAuthentication)
+    }
+
+    fun calculateUserStatistics(
+        userTrips: List<TripDto>,
+        weight: Double?,
+        height: Double?,
+        age: Int?,
+        gender: Gender?
+    ): UserStatistics {
+        val filteredUserTrips = userTrips.filter { it.done }
+        val kilometersTraveled = filteredUserTrips.sumOf { it.estimatedLength }
+        val hoursSpent = filteredUserTrips.sumOf { it.estimatedTime }
+        val caloriesBurned: Int?
+
+        caloriesBurned = if (height != null && age != null && weight != null && gender != null) {
+            filteredUserTrips.sumOf {
+                CaloriesUtils.calculateEnergyExpenditure(
+                    height,
+                    age,
+                    weight,
+                    it.estimatedTime,
+                    it.estimatedLength,
+                    gender
+                )
+            }.toInt()
+        } else {
+            null
+        }
+
+        return UserStatistics(
+            caloriesBurned = caloriesBurned,
+            kilometersTraveled = kilometersTraveled,
+            hoursSpent = hoursSpent
+        )
     }
 }

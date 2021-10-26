@@ -1,4 +1,8 @@
 package pl.adrian.planningtripsbackend.user.model.dto
 
-class UserStatistics {
+data class UserStatistics(
+    var caloriesBurned: Int? = null,
+    var kilometersTraveled: Double? = null,
+    var hoursSpent: Double? = null
+) {
 }
