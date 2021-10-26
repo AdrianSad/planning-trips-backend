@@ -14,7 +14,9 @@ interface TripMapper {
         Mapping(target = "id", ignore = true),
         Mapping(target = "createdDate", ignore = true),
         Mapping(target = "done", ignore = true),
-        Mapping(target = "addedByUserId", ignore = true)
+        Mapping(target = "addedByUserId", ignore = true),
+        Mapping(target = "estimatedTime", expression = "java(createTripDto.estimatedTime / 3600.0)"),
+        Mapping(target = "estimatedLength", expression = "java(createTripDto.estimatedLength / 1000.0)")
     )
     fun toTrip(createTripDto: CreateTripDto): Trip
 

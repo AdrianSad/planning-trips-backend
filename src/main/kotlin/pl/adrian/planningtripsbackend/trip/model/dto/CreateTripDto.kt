@@ -13,15 +13,15 @@ import kotlin.math.min
 data class CreateTripDto(
 
     @field:NotBlank
-    val route : String = "",
+    val route: String = "",
 
     val image: String = "",
 
     @field:NotNull
-    val estimatedTime: Double = 0.0,
+    @JvmField val estimatedTime: Double = 0.0,
 
     @field:NotNull
-    val estimatedLength: Double = 0.0,
+    @JvmField val estimatedLength: Double = 0.0,
 
     @field:NotNull
     val travelMode: TravelMode = TravelMode.WALKING,

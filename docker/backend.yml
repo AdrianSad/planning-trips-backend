@@ -1,0 +1,13 @@
+version: '3.7'
+services:
+  planning_trips_backend:
+    build:
+      context: ..
+      dockerfile: ./docker/Dockerfile
+      args:
+        MONGO_USER: $MONGO_USER
+        MONGO_PASSWORD: $MONGO_PASSWORD
+        ISSUER_URI: $ISSUER_URI
+    container_name: planning_trips_backend
+    ports:
+      - "8080:8080"

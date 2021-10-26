@@ -23,7 +23,8 @@ import pl.adrian.planningtripsbackend.user.model.dto.AuthenticateUserDto
 import pl.adrian.planningtripsbackend.user.model.dto.CreateUserDto
 import pl.adrian.planningtripsbackend.user.model.dto.UpdateUserDto
 import pl.adrian.planningtripsbackend.user.model.entity.User
-import pl.adrian.planningtripsbackend.utils.TokenUtils
+import pl.adrian.planningtripsbackend.config.TokenConfig
+import pl.adrian.planningtripsbackend.user.model.entity.Gender
 import kotlin.jvm.Throws
 
 @AutoConfigureMockMvc
@@ -72,7 +73,14 @@ class UserControllerTest {
             DEFAULT_PASSWORD,
             DEFAULT_EMAIL
         )
+
         val writeValueAsBytes = ObjectMapper().writeValueAsBytes(createUserDto)
+
+        restUserMockMvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/user/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(writeValueAsBytes)
+        )
 
         restUserMockMvc.perform(
             MockMvcRequestBuilders.post("/api/v1/user/register")
@@ -112,7 +120,7 @@ class UserControllerTest {
     @Throws(Exception::class)
     fun getUserData() {
 
-        TestSecurityContextHolder.getContext().authentication = TokenUtils.getJwtAuthenticationToken()
+        TestSecurityContextHolder.getContext().authentication = TokenConfig.getJwtAuthenticationToken()
 
         restUserMockMvc.perform(
             MockMvcRequestBuilders.get("/api/v1/user")
@@ -130,13 +138,15 @@ class UserControllerTest {
     @Test
     @Throws(Exception::class)
     fun updateUser() {
-        TestSecurityContextHolder.getContext().authentication = TokenUtils.getJwtAuthenticationToken()
+        TestSecurityContextHolder.getContext().authentication = TokenConfig.getJwtAuthenticationToken()
 
         val UPDATE_WEIGHT = 1.5
         val UPDATE_HEIGHT = 1.6
         val UPDATE_AGE = 2
+        val UPDATE_GENDER = Gender.FEMALE
 
-        val authenticateUserDto = UpdateUserDto(weight = UPDATE_WEIGHT, height = UPDATE_HEIGHT, age = UPDATE_AGE)
+        val authenticateUserDto =
+            UpdateUserDto(weight = UPDATE_WEIGHT, height = UPDATE_HEIGHT, age = UPDATE_AGE, gender = UPDATE_GENDER)
         val writeValueAsBytes = ObjectMapper().writeValueAsBytes(authenticateUserDto)
 
         restUserMockMvc.perform(
@@ -152,6 +162,8 @@ class UserControllerTest {
             .andExpect(MockMvcResultMatchers.jsonPath("\$.height").value(UPDATE_HEIGHT))
             .andExpect(MockMvcResultMatchers.jsonPath("\$.age").exists())
             .andExpect(MockMvcResultMatchers.jsonPath("\$.age").value(UPDATE_AGE))
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.gender").exists())
+            .andExpect(MockMvcResultMatchers.jsonPath("\$.gender").value(UPDATE_GENDER.toString()))
             .andExpect(MockMvcResultMatchers.jsonPath("\$.email").exists())
             .andExpect(MockMvcResultMatchers.jsonPath("\$.username").exists())
             .andExpect(MockMvcResultMatchers.jsonPath("\$.id").exists())
@@ -163,7 +175,7 @@ class UserControllerTest {
     @Test
     @Throws(Exception::class)
     fun updateUserWithMissingData() {
-        TestSecurityContextHolder.getContext().authentication = TokenUtils.getJwtAuthenticationToken()
+        TestSecurityContextHolder.getContext().authentication = TokenConfig.getJwtAuthenticationToken()
 
         val UPDATE_WEIGHT = 1.5
         val UPDATE_HEIGHT = 1.6

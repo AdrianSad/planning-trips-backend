@@ -12,12 +12,12 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:9080/auth/realms/PlanningTripsRealm
+          issuer-uri: ${ISSUER_URI:http://localhost:9080/auth}/realms/PlanningTripsRealm
 
   main:
     allow-bean-definition-overriding: true
 keycloak:
-  serverUrl: http://localhost:9080/auth
+  serverUrl: ${ISSUER_URI}
   realm: PlanningTripsRealm
   clientId: login-app
   clientSecret: b18fceeb-2ef8-4b87-918f-29a241d396ea

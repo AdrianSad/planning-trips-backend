@@ -1,5 +1,7 @@
 package pl.adrian.planningtripsbackend.utils
 
+import pl.adrian.planningtripsbackend.user.model.entity.Gender
+
 class CaloriesUtils {
 
     companion object {
@@ -7,9 +9,9 @@ class CaloriesUtils {
             height: Double,
             age: Int,
             weight: Double,
-            gender: Int,
             durationInHours: Double,
             kmTraveled: Double,
+            gender: Gender,
 
             ): Double {
             val harrisBenedictRmR: Double = convertKilocaloriesToMlKmin(
@@ -22,7 +24,7 @@ class CaloriesUtils {
             )
             val speedInMph: Double = kmTraveled / durationInHours
             val metValue: Double = getMetForActivity(speedInMph)
-            val constant = 3.0
+            val constant = 3.5
             val correctedMets = metValue * (constant / harrisBenedictRmR)
             return correctedMets * durationInHours * weight
         }
@@ -33,8 +35,8 @@ class CaloriesUtils {
             return kcalMin / weightKgs * 1000
         }
 
-        private fun harrisBenedictRmr(gender: Int, weightKg: Double, age: Int, heightCm: Double): Double {
-            return if (gender == 1) {
+        private fun harrisBenedictRmr(gender: Gender, weightKg: Double, age: Int, heightCm: Double): Double {
+            return if (gender == Gender.FEMALE) {
                 655.0955f + 1.8496f * heightCm + 9.5634f * weightKg - 4.6756f * age
             } else {
                 66.4730f + 5.0033f * heightCm + 13.7516f * weightKg - 6.7550f * age

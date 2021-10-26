@@ -29,7 +29,7 @@ import kotlin.jvm.Throws
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import pl.adrian.planningtripsbackend.trip.model.dto.CreateTripDto
-import pl.adrian.planningtripsbackend.utils.TokenUtils
+import pl.adrian.planningtripsbackend.config.TokenConfig
 
 @AutoConfigureMockMvc
 @WithMockUser(value = "test")
@@ -54,7 +54,7 @@ class TripControllerTest {
 
     @BeforeEach
     fun setUp() {
-        TestSecurityContextHolder.getContext().authentication = TokenUtils.getJwtAuthenticationToken()
+        TestSecurityContextHolder.getContext().authentication = TokenConfig.getJwtAuthenticationToken()
 
         trip = createTrip()
         createTripDto = createTripDto()
@@ -81,8 +81,8 @@ class TripControllerTest {
 
         val testTrip = tripList[tripList.size - 1]
 
-        assertThat(testTrip.estimatedLength).isEqualTo(DEFAULT_ESTIMATED_LENGTH)
-        assertThat(testTrip.estimatedTime).isEqualTo(DEFAULT_ESTIMATED_TIME)
+        assertThat(testTrip.estimatedLength).isEqualTo(DEFAULT_ESTIMATED_LENGTH / 1000)
+        assertThat(testTrip.estimatedTime).isEqualTo(DEFAULT_ESTIMATED_TIME / 3600)
         assertThat(testTrip.route).isEqualTo(DEFAULT_ROUTE)
         assertThat(testTrip.markers).hasSize(DEFAULT_MARKERS.size)
         assertThat(testTrip.travelMode).isEqualTo(DEFAULT_TRAVEL_MODE)
@@ -229,8 +229,8 @@ class TripControllerTest {
         val mappedTrip = tripMapper.toTrip(createTripDto)
 
         assertNotNull(mappedTrip)
-        assertThat(mappedTrip.estimatedLength).isEqualTo(DEFAULT_ESTIMATED_LENGTH)
-        assertThat(mappedTrip.estimatedTime).isEqualTo(DEFAULT_ESTIMATED_TIME)
+        assertThat(mappedTrip.estimatedLength).isEqualTo(DEFAULT_ESTIMATED_LENGTH / 1000)
+        assertThat(mappedTrip.estimatedTime).isEqualTo(DEFAULT_ESTIMATED_TIME / 3600)
         assertThat(mappedTrip.route).isEqualTo(DEFAULT_ROUTE)
         assertThat(mappedTrip.markers).hasSize(DEFAULT_MARKERS.size)
         assertThat(mappedTrip.travelMode).isEqualTo(DEFAULT_TRAVEL_MODE)
@@ -259,7 +259,7 @@ class TripControllerTest {
 
         private const val DEFAULT_ROUTE = "{route: \"test\"}"
 
-        private const val DEFAULT_ADDED_BY_USER_ID = "b8338d29-a826-47dc-9f6c-5adf3234ed7f"
+        private const val DEFAULT_ADDED_BY_USER_ID = "f4d59838-48d3-4480-a9ea-41332be78d1c"
 
         private const val DEFAULT_ESTIMATED_TIME = 1.0
 

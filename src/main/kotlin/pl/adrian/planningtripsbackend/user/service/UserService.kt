@@ -9,7 +9,6 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Service
 import org.springframework.util.CollectionUtils
-import org.springframework.util.MultiValueMap
 import pl.adrian.planningtripsbackend.config.keycloak.KeycloakConfig
 import pl.adrian.planningtripsbackend.config.keycloak.KeycloakProperties
 import pl.adrian.planningtripsbackend.exception.model.BadRequestException
@@ -86,10 +85,13 @@ class UserService(
         jwtAuthentication: JwtAuthenticationToken
     ): UserDto {
         val trips = tripService.getUserTrips(jwtAuthentication)
-        val weight = foundUser.attributes["weight"]!![0].toDouble()
-        val height = foundUser.attributes["height"]!![0].toDouble()
-        val age = foundUser.attributes["age"]!![0].toInt()
-        val gender = Gender.valueOf(foundUser.attributes["gender"]!![0])
+        val weight = foundUser.attributes?.get("weight")?.get(0)?.toDouble()
+        val height = foundUser.attributes?.get("height")?.get(0)?.toDouble()
+        val age = foundUser.attributes?.get("age")?.get(0)?.toInt()
+        val gender =
+            if (foundUser.attributes?.get("gender")
+                    ?.get(0) != null
+            ) Gender.valueOf(foundUser.attributes["gender"]!![0]) else null
         return UserDto(
             id = foundUser.id,
             username = foundUser.username,
@@ -100,7 +102,7 @@ class UserService(
             age = age,
             trips = trips,
             gender = gender,
-            statistics = calculateUserStatistics(trips, weight, height, age)
+            statistics = calculateUserStatistics(trips, weight, height, age, gender)
         )
     }
 
@@ -126,21 +128,35 @@ class UserService(
         return mapKeycloakUserToUserDTO(foundUser, jwtAuthentication)
     }
 
-    fun calculateUserStatistics(userTrips: List<TripDto>, weight: Double, height: Double, age: Int): UserStatistics {
-        val kilometersTraveled = userTrips.sumOf { it.estimatedLength }
-        val hoursSpent = userTrips.sumOf { it.estimatedTime }
-        val caloriesBurned = userTrips.sumOf {
-            CaloriesUtils.calculateEnergyExpenditure(
-                height,
-                age,
-                weight,
-                1,
-                it.estimatedTime,
-                it.estimatedLength
-            )
+    fun calculateUserStatistics(
+        userTrips: List<TripDto>,
+        weight: Double?,
+        height: Double?,
+        age: Int?,
+        gender: Gender?
+    ): UserStatistics {
+        val filteredUserTrips = userTrips.filter { it.done }
+        val kilometersTraveled = filteredUserTrips.sumOf { it.estimatedLength }
+        val hoursSpent = filteredUserTrips.sumOf { it.estimatedTime }
+        val caloriesBurned: Int?
+
+        caloriesBurned = if (height != null && age != null && weight != null && gender != null) {
+            filteredUserTrips.sumOf {
+                CaloriesUtils.calculateEnergyExpenditure(
+                    height,
+                    age,
+                    weight,
+                    it.estimatedTime,
+                    it.estimatedLength,
+                    gender
+                )
+            }.toInt()
+        } else {
+            null
         }
+
         return UserStatistics(
-            caloriesBurned = caloriesBurned.toInt(),
+            caloriesBurned = caloriesBurned,
             kilometersTraveled = kilometersTraveled,
             hoursSpent = hoursSpent
         )
